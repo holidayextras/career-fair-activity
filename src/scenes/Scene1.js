@@ -8,12 +8,7 @@ import { default as hotelImage } from "../assets/testHotel2.png";
 
 import config from "../config";
 
-let cursors;
-let balloon;
-let plane;
 let chosenVehicle;
-let buildingCount;
-let level = 1;
 class Scene1 extends Scene {
   constructor(game) {
     super("Scene1");
@@ -31,9 +26,9 @@ class Scene1 extends Scene {
   }
 
   create() {
-    buildingCount = 0;
-    level = 1;
-    cursors = this.input.keyboard.createCursorKeys();
+    this.buildingCount = 0;
+    this.level = 1
+    this.cursors = this.input.keyboard.createCursorKeys();
     const { width: sceneWidth, height: sceneHeight } = this.sys.game.config;
 
     this.add.image(400, 300, "sky");
@@ -50,23 +45,23 @@ class Scene1 extends Scene {
     });
 
     if (config.chosenVehicle === "plane") {
-      plane = this.physics.add.sprite((sceneWidth - 180) / 4, 245, "plane");
-      plane.setImmovable(true);
-      plane.setCollideWorldBounds(true);
-      plane.setDepth(2);
-      plane.alive = true;
-      plane.setGravity(0, config.vehicle.gravity);
-      plane.setPosition((sceneWidth - 40) / 4, 245);
-      chosenVehicle = plane;
+      this.plane = this.physics.add.sprite((sceneWidth - 180) / 4, 245, "plane");
+      this.plane.setImmovable(true);
+      this.plane.setCollideWorldBounds(true);
+      this.plane.setDepth(2);
+      this.plane.alive = true;
+      this.plane.setGravity(0, config.vehicle.gravity);
+      this.plane.setPosition((sceneWidth - 40) / 4, 245);
+      chosenVehicle = this.plane;
     } else {
-      balloon = this.physics.add.sprite((sceneWidth - 180) / 4, 245, "balloon");
-      balloon.setImmovable(true);
-      balloon.setCollideWorldBounds(true);
-      balloon.setDepth(2);
-      balloon.alive = true;
-      balloon.setGravity(0, config.vehicle.gravity);
-      balloon.setPosition((sceneWidth - 40) / 4, 245);
-      chosenVehicle = balloon;
+      this.balloon = this.physics.add.sprite((sceneWidth - 180) / 4, 245, "balloon");
+      this.balloon.setImmovable(true);
+      this.balloon.setCollideWorldBounds(true);
+      this.balloon.setDepth(2);
+      this.balloon.alive = true;
+      this.balloon.setGravity(0, config.vehicle.gravity);
+      this.balloon.setPosition((sceneWidth - 40) / 4, 245);
+      chosenVehicle = this.balloon;
     }
 
     this.physics.world.checkCollision.down = false;
@@ -93,7 +88,7 @@ class Scene1 extends Scene {
       loop: true
     });
 
-    this.levelMessage = this.add.text(100, 175, "Level " + level, {
+    this.levelMessage = this.add.text(100, 175, "Level " + this.level, {
       fontSize: "100px",
       fill: "#542e91",
       stroke: "#ffee5f",
@@ -110,7 +105,6 @@ class Scene1 extends Scene {
   }
 
   update() {
-    console.log(buildingCount)
     this.levelCheck();
     if (this.fallenThrough()) {
       this.scene.stop("Scene1");
@@ -123,18 +117,18 @@ class Scene1 extends Scene {
       const endScene = this.scene.get("Scene2");
       endScene.scene.start("Scene2");
     }
-    if (cursors.space.isDown) {
+    if (this.cursors.space.isDown) {
       chosenVehicle.setVelocity(0, -config.vehicle.force);
-      if (chosenVehicle === plane && chosenVehicle.angle >= -3) {
+      if (chosenVehicle === this.plane && chosenVehicle.angle >= -3) {
         chosenVehicle.angle -= config.vehicle.plane.thrust / 100;
       } else if (chosenVehicle.angle >= -10) {
         chosenVehicle.angle -= config.vehicle.plane.thrust / 100;
       }
     } else {
-      if (chosenVehicle === plane && chosenVehicle.angle <= 5) {
+      if (chosenVehicle === this.plane && chosenVehicle.angle <= 5) {
         chosenVehicle.angle += config.vehicle.plane.weight / 100;
       } 
-      if (chosenVehicle === balloon && chosenVehicle.angle <= 15) {
+      if (chosenVehicle === this.balloon && chosenVehicle.angle <= 15) {
         chosenVehicle.angle += config.weather.windForce / 100;
       }
     }
@@ -195,7 +189,7 @@ class Scene1 extends Scene {
     this.addBuilding(config.width, y, true);
     this.addBuilding(config.width, y2);
 
-    buildingCount += 1;
+    this.buildingCount += 1;
   }
 
   increaseScore(chosenVehicle, rectangle) {
@@ -223,8 +217,8 @@ class Scene1 extends Scene {
   }
 
   levelCheck() {
-    if(buildingCount === config.levelLength) {
-      buildingCount = 0;
+    if(this.buildingCount === config.levelLength) {
+      this.buildingCount = 0;
       this.time.removeAllEvents();
       this.addClouds();
       this.speed += config.buildings.speedIncrease * 10;
@@ -250,6 +244,7 @@ class Scene1 extends Scene {
   }
 
   changeLevel() {
+    this.level++;
     this.time.removeAllEvents();
     this.addClouds();
     this.time.addEvent({
@@ -260,7 +255,7 @@ class Scene1 extends Scene {
     });
     this.time.addEvent({
       event: "addBuildingLoop",
-      delay: (config.buildings.buildingGap * 1000) / (level + 1),
+      delay: (config.buildings.buildingGap * 1000) / (this.level + 1),
       callback: this.addBuildings,
       callbackScope: this,
       loop: true
@@ -268,8 +263,7 @@ class Scene1 extends Scene {
   }
 
   displayLevelText() {
-    level++;
-    this.levelMessage.setText("Level " + level);
+    this.levelMessage.setText("Level " + this.level);
     this.levelMessage.setVisible(true);
     this.time.addEvent({
       delay: 1000,
