@@ -1,30 +1,19 @@
-import { Game } from 'phaser'
+import { Game } from "phaser";
 
-import './styles.css'
-
-// Import our scenes
-
-import MainScene from './scenes/MainScene'
-import EndScene from './scenes/EndScene'
-import StartScene from './scenes/StartScene'
-
-import config from './config'
+import Scene0 from "./scenes/Scene0";
+import Scene1 from "./scenes/Scene1";
+import Scene2 from "./scenes/Scene2";
 
 const game = new Game({
-  type: Phaser.AUTO,
-  width: config.width,
-  height: config.height,
-  backgroundColor: '#222222',
-  parent: 'app',
-  scene: [  
-    StartScene,
-    MainScene,
-    EndScene,
-  ],
+  width: 800,
+  height: 600,
+  zoom: 1,
+  backgroundColor: "#fddc06",
+  parent: "game-container",
+  scene: [Scene0, Scene1, Scene2],
   physics: {
-    default: 'arcade',
-    arcade: {
-      debug: config.debug
-    }
+    default: "arcade"
   }
-})
+});
+
+export default game;
