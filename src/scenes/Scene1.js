@@ -235,7 +235,7 @@ class Scene1 extends Scene {
         loop: false
       });
       this.time.addEvent({
-        delay: 2000,
+        delay: 3000,
         callback: this.displayLevelText,
         callbackScope: this,
         loop: false
@@ -244,7 +244,6 @@ class Scene1 extends Scene {
   }
 
   changeLevel() {
-    this.level++;
     this.time.removeAllEvents();
     this.addClouds();
     this.time.addEvent({
@@ -263,6 +262,7 @@ class Scene1 extends Scene {
   }
 
   displayLevelText() {
+    this.level++;
     this.levelMessage.setText("Level " + this.level);
     this.levelMessage.setVisible(true);
     this.time.addEvent({
