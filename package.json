@@ -1,18 +1,26 @@
 {
   "name": "flightofthecoder",
   "version": "1.0.0",
-  "description": "",
+  "description": "Career Fair interactive activity",
   "main": "index.html",
   "scripts": {
     "start": "parcel index.html --open",
-    "build": "parcel build index.html"
+    "build": "parcel build index.html",
+    "lint": "standard",
+    "lint:fix": "standard --fix"
   },
   "dependencies": {
-    "phaser": "^3.11.0"
+    "bird": "^0.7.0",
+    "phaser": "3.19.0",
+    "standard": "^14.1.0"
   },
   "devDependencies": {
     "@babel/core": "7.2.0",
     "parcel-bundler": "^1.6.1"
   },
-  "keywords": []
+  "standard": {
+    "ignore": [
+      "dist"
+    ]
+  }
 }

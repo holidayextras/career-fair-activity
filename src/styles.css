@@ -1,0 +1,36 @@
+@font-face {
+  font-family: HolidayExtrasSans;
+  src: url("https://d17s4kc6349e5h.cloudfront.net/holidayextras/assets/fonts/HolidayExtrasSans-Regular.eot");
+  src: url("https://d17s4kc6349e5h.cloudfront.net/holidayextras/assets/fonts/HolidayExtrasSans-Regular.eot?#iefix")
+      format("embedded-opentype"),
+    url("https://d17s4kc6349e5h.cloudfront.net/holidayextras/assets/fonts/HolidayExtrasSans-Regular.woff2")
+      format("woff2"),
+    url("https://d17s4kc6349e5h.cloudfront.net/holidayextras/assets/fonts/HolidayExtrasSans-Regular.woff")
+      format("woff"),
+    url("https://d17s4kc6349e5h.cloudfront.net/holidayextras/assets/fonts/HolidayExtrasSans-Regular.ttf")
+      format("truetype");
+  font-weight: 400;
+  font-display: auto;
+  font-style: normal;
+}
+
+html,
+body,
+#game-container {
+  background: #fddc06;
+  margin: 0;
+  padding: 0;
+  font-family: HolidayExtrasSans, sans-serif;
+}
+
+#game-container {
+  min-width: 100vw;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#game-container > canvas {
+  border-radius: 5px;
+}

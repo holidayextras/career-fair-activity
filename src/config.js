@@ -1,37 +1,39 @@
+// All the config things for the game
+
 export default {
-  // Game dimensions
-  width: 800,
-  height: 600,
-
-  // Balloon or Plane
-  chosenVehicle: "balloon",
-
-  vehicle: {
-    gravity: 90,
-    gravityDecreaseAmount: 50,
-    force: 50,
-    plane: {
-      weight: 9,
-      thrust: 15
-    }
-  },
-
-  score: 0,
-  scoreIncrease: 1,
-
-  levelLength: 8,
 
   buildings: {
-    buildingGap: 4,
-    buildingSpeed: 15,
-    speedIncrease: 5
-  },
-
-  weather: {
-    windForce: 15
+    amountPerLevel: 8,
+    // In seconds
+    gap: 5,
+    gapIncrease: 1,
+    speed: 8,
+    speedIncrease: 2
   },
 
   debug: false,
 
-  gameover: false
-};
+  // Game dimensions
+  height: 600,
+  width: 800,
+
+  fillScreen: true,
+
+  scoreIncrease: 1,
+
+  vehicle: {
+    gravity: 90,
+    gravityDecreaseAmount: 50,
+    plane: {
+      thrust: 15,
+      weight: 9
+    },
+
+    // "balloon" or "plane"
+    type: 'balloon'
+  },
+
+  weather: {
+    windSpeed: 40
+  }
+}

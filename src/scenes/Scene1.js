@@ -1,281 +1,233 @@
-import { Scene } from "phaser";
+import { Scene } from 'phaser'
 
-import { default as hotAirBalloon } from "../assets/hot-air-balloon.png";
-import { default as planeImage } from "../assets/testPlane.png";
-import { default as skyImage } from "../assets/testSky.png";
-import { default as cloudImage } from "../assets/cloud.png";
-import { default as hotelImage } from "../assets/testHotel2.png";
+import { default as hotAirBalloon } from '../assets/hotAirBalloon.png'
+import { default as hotelImage } from '../assets/hotel.png'
+import { default as planeImage } from '../assets/plane.png'
 
-import config from "../config";
+import config from '../config'
 
-let chosenVehicle;
 class Scene1 extends Scene {
-  constructor(game) {
-    super("Scene1");
+  constructor () {
+    super({
+      active: true,
+      key: "Scene1"
+    })
   }
 
-  preload() {
-    this.load.image("cloud", cloudImage);
-    this.load.image("hotel", hotelImage);
-    this.load.image("sky", skyImage);
-    if (config.chosenVehicle === "balloon") {
-      this.load.image("balloon", hotAirBalloon);
+  preload () {
+    this.load.image('hotel', hotelImage)
+
+    if (config.vehicle.type === 'balloon') {
+      this.load.image('balloon', hotAirBalloon)
     } else {
-      this.load.image("plane", planeImage);
+      this.load.image('plane', planeImage)
     }
   }
 
-  create() {
-    this.buildingCount = 0;
+  create () {
+    this.physics.world.checkCollision.down = false
+
+    this.spaceKey = this.input.keyboard.addKey('SPACE')
+
+    // Group to add our assets to in order to move them
+    this.buildings = this.physics.add.group()
+
+    // Can only be "balloon" or "plane", but default to "balloon"
+    const vehicleTypeFailSafe = ['plane', 'balloon'].includes(config.vehicle.type) ? config.vehicle.type : 'balloon'
+    this.vehicle = this.physics.add.sprite(10, 10, vehicleTypeFailSafe);
+    this.vehicle.setPosition(config.width / 2, config.height / 2)
+    this.vehicle.setCollideWorldBounds(true)
+    this.vehicle.setDepth(2)
+    this.vehicle.type = vehicleTypeFailSafe
+    
+    // Make balloon sway
+    this.tweens.add({
+      angle: {
+        from: 12,
+        to: 2
+      },
+      duration: 2000,
+      ease: 'Sine.easeInOut',
+      repeat: -1,
+      targets: this.vehicle,
+      yoyo: true
+    })
+
+    this.tweens.add({
+      duration: 2000,
+      ease: 'Sine.easeInOut',
+      repeat: -1,
+      targets: this.vehicle,
+      y: '+=30',
+      yoyo: true
+    })
+
+    // To display our score
+    this.labelScore = this.add.text(20, 20, 'Score: 0', {
+      font: '32px "HolidayExtrasSans"',
+      fill: 'purple',
+      backgroundColor: '#fddc06'
+    })
+    this.labelScore.setDepth(3)
+    this.labelScore.setVisible(false)
+    this.labelScore.setX(30)
+
+    // To display the level the player is in
+    this.levelMessage = this.add.text(100, 175, '', {
+      fill: '#542e91',
+      font: '100px "HolidayExtrasSans"',
+      stroke: '#ffee5f',
+      strokeThickness: 8
+    })   
+    this.levelMessage.setDepth(4)
+  }
+
+  startGame (restart = false) {
+    // Reset score
+    this.buildingCount = 0
     this.level = 1
-    this.cursors = this.input.keyboard.createCursorKeys();
-    const { width: sceneWidth, height: sceneHeight } = this.sys.game.config;
+    this.score = 0
+    this.speed = config.buildings.speed * 10
 
-    this.add.image(400, 300, "sky");
+    this.labelScore.setVisible(true)
 
-    this.buildings = this.physics.add.group();
-    this.clouds = this.physics.add.group();
-    this.speed = config.buildings.buildingSpeed * 10;
+    this.spaceKey.enabled = true
 
-    this.time.addEvent({
-      delay: 5000,
-      callback: this.addClouds,
-      callbackScope: this,
-      loop: true
-    });
+    // Reset vehicle
+    this.vehicle.alive = true
+    this.vehicle.setGravity(0, config.vehicle.gravity)
 
-    if (config.chosenVehicle === "plane") {
-      this.plane = this.physics.add.sprite((sceneWidth - 180) / 4, 245, "plane");
-      this.plane.setImmovable(true);
-      this.plane.setCollideWorldBounds(true);
-      this.plane.setDepth(2);
-      this.plane.alive = true;
-      this.plane.setGravity(0, config.vehicle.gravity);
-      this.plane.setPosition((sceneWidth - 40) / 4, 245);
-      chosenVehicle = this.plane;
-    } else {
-      this.balloon = this.physics.add.sprite((sceneWidth - 180) / 4, 245, "balloon");
-      this.balloon.setImmovable(true);
-      this.balloon.setCollideWorldBounds(true);
-      this.balloon.setDepth(2);
-      this.balloon.alive = true;
-      this.balloon.setGravity(0, config.vehicle.gravity);
-      this.balloon.setPosition((sceneWidth - 40) / 4, 245);
-      chosenVehicle = this.balloon;
+    // Reset position of vehicle on restart
+    if (restart) {
+      this.vehicle.setPosition(config.width / 2, config.height / 2)
     }
 
-    this.physics.world.checkCollision.down = false;
+    // Stop 'yoyotween'
+    this.tweens.getAllTweens()[1].stop()
 
-    this.addClouds(15, true);
-    this.addBuildings();
-
-    this.labelScore = this.add.text(30, 12, "Score: 0", {
-      fontSize: "32px",
-      fill: "purple",
-      backgroundColor: "#fddc06"
-    });
-    this.labelScore.setDepth(3);
-    this.labelScore.setX(30);
-    this.labelScore.visible = false;
-    this.score = 0;
-    this.labelScore.visible = true;
-    this.labelScore.text = "0";
+    // Add event to add buildings
+    this.time.removeAllEvents()
     this.time.addEvent({
-      event: "addBuildingLoop",
-      delay: (config.buildings.buildingGap * 1000) / 2,
       callback: this.addBuildings,
       callbackScope: this,
+      delay: (config.buildings.gap * 1000),
+      event: 'addBuildingLoop',
       loop: true
-    });
-
-    this.levelMessage = this.add.text(100, 175, "Level " + this.level, {
-      fontSize: "100px",
-      fill: "#542e91",
-      stroke: "#ffee5f",
-      strokeThickness: 8
-    });
-    this.levelMessage.x = config.width / 2 - this.levelMessage.width / 2;
-    this.levelMessage.setDepth(4);
-    this.time.addEvent({
-      delay: 1000,
-      callback: this.hideLevelText,
-      callbackScope: this,
-      loop: false
-    });
+    })
   }
 
-  update() {
-    this.levelCheck();
-    if (this.fallenThrough()) {
-      this.scene.stop("Scene1");
-      const endScene = this.scene.get("Scene2");
-      endScene.scene.start("Scene2");
+  gameOver () {
+    this.vehicle.alive = false
+    this.scene.stop('Scene1')
+    const endScene = this.scene.get('Scene2')
+    endScene.scene.start('Scene2')
+  }
+
+  update () {
+    this.levelCheck()
+
+    if (this.vehicle.body.y > config.height) {
+      return this.gameOver()
     }
-    if (config.gameOver) {
-      config.gameOver = false;
-      this.scene.stop("Scene1");
-      const endScene = this.scene.get("Scene2");
-      endScene.scene.start("Scene2");
-    }
-    if (this.cursors.space.isDown) {
-      chosenVehicle.setVelocity(0, -config.vehicle.force);
-      if (chosenVehicle === this.plane && chosenVehicle.angle >= -3) {
-        chosenVehicle.angle -= config.vehicle.plane.thrust / 100;
-      } else if (chosenVehicle.angle >= -10) {
-        chosenVehicle.angle -= config.vehicle.plane.thrust / 100;
-      }
-    } else {
-      if (chosenVehicle === this.plane && chosenVehicle.angle <= 5) {
-        chosenVehicle.angle += config.vehicle.plane.weight / 100;
-      } 
-      if (chosenVehicle === this.balloon && chosenVehicle.angle <= 15) {
-        chosenVehicle.angle += config.weather.windForce / 100;
+
+    if (this.spaceKey.isDown) {
+      this.vehicle.setVelocity(0, -config.vehicle.gravityDecreaseAmount)
+      if (this.vehicle.type === 'plane') {
+        if (this.vehicle.angle >= -3) {
+          this.vehicle.angle -= config.vehicle.plane.thrust / 100
+        } else if (this.vehicle.angle >= -10) {
+          this.vehicle.angle -= config.vehicle.plane.thrust / 100
+        }
       }
     }
   }
 
-  fallenThrough() {
-    return chosenVehicle.body.y > config.height;
-  }
+  addBuilding (x, y, top = false) {
+    const building = this.physics.add.sprite(0, y, 'hotel')
+    building.setX(building.width + x)
 
-  floatUp() {
-    chosenVehicle.setVelocity(0, -config.vehicle.gravityDecreaseAmount);
-  }
+    this.buildings.add(building)
 
-  hitBuilding() {
-    config.gameOver = true;
-  }
-
-  addBuilding(x, y, top = false) {
-    const building = this.physics.add.sprite(x, y, "hotel");
-    this.buildings.add(building);
-    building.setVelocity(-this.speed, 0);
-    building.body.immovable = true;
-    building.outOfBoundsKill = true;
-    building.setDepth(1);
+    building.setVelocity(-this.speed, 0)
+    building.body.immovable = true
+    building.outOfBoundsKill = true
+    building.setDepth(1)
     if (top) {
+
       // Flip the hotel upside down
-      building.setFlipY(true);
-      //Add an invisible layer so we can increase the score
-      const hitBox = this.physics.add.sprite(x + 50, y + 200, "hotel");
-      hitBox.setVisible(false);
-      hitBox.setVelocity(-this.speed, 0);
-      hitBox.body.immovable = false;
-      hitBox.setDepth(1);
-      this.physics.add.collider(
-        chosenVehicle,
-        hitBox,
-        this.increaseScore,
-        null,
-        this
-      );
+      building.setFlipY(true)
+    
+      // Add an invisible layer so we can increase the score
+      const rect = this.add.rectangle(x + building.width, 0, 1, this.sys.game.config.height, 0, config.debug ? 1 : 0)
+      rect.setOrigin(0, 0)
+      const empty = this.physics.add.existing(rect)
+      empty.body.moves = true
+      empty.body.setVelocity(-this.speed, 0)
+      
+      this.physics.add.overlap(this.vehicle, empty, this.increaseScore, null, this)
     }
-    this.physics.add.collider(
-      chosenVehicle,
-      building,
-      this.hitBuilding,
-      null,
-      this
-    );
+
+    this.physics.add.collider(this.vehicle, building, this.gameOver, null, this)
   }
 
-  addBuildings() {
-    const minY = -25;
-    const gap = 245;
+  addBuildings () {
+    if (this.buildingCount >= config.buildings.amountPerLevel) return
 
-    const y = Math.floor(Math.random() * 150) + minY;
-    const y2 = y + 267 + gap;
+    const minY = -25
 
-    this.addBuilding(config.width, y, true);
-    this.addBuilding(config.width, y2);
+    // Vertical gap between the buildings
+    const gap = 245
 
-    this.buildingCount += 1;
+    const y = Math.floor(Math.random() * 150) + minY
+    const y2 = y + 267 + gap
+
+    this.addBuilding(config.width, y, true)
+    this.addBuilding(config.width, y2)
   }
 
-  increaseScore(chosenVehicle, rectangle) {
-    rectangle.destroy(rectangle);
-    this.score += config.scoreIncrease;
-    config.score = this.score;
-    this.labelScore.setText("Score: " + this.score);
-
-    const { width: sceneWidth } = this.sys.game.config;
+  increaseScore (_, rectangle) {
+    rectangle.destroy()
+    this.score += config.scoreIncrease
+    this.labelScore.setText(`Score: ${this.score}`)
+    this.buildingCount += 1
   }
 
-  addClouds(amount = 1, randomX = false) {
-    var startAssetX = config.width;
-    for (let i = 0; i < amount; i++) {
-      const y = Math.floor(Math.random() * 500);
-      const x = randomX ? Math.floor(Math.random() * startAssetX) : startAssetX;
-      const cloud = this.physics.add.sprite(x, y, "cloud");
-
-      this.clouds.add(cloud);
-      const scale = Math.random() * (0.1 - 0.05) + 0.05;
-      cloud.setScale(scale, scale);
-      cloud.setVelocity(-80 + Math.floor(Math.random() * 10), 0);
-      cloud.outOfBoundsKill = true;
-    }
-  }
-
-  levelCheck() {
-    if(this.buildingCount === config.levelLength) {
-      this.buildingCount = 0;
-      this.time.removeAllEvents();
-      this.addClouds();
-      this.speed += config.buildings.speedIncrease * 10;
-      this.time.addEvent({
-        delay: 5000,
-        callback: this.addClouds,
-        callbackScope: this,
-        loop: true
-      });
+  levelCheck () {
+    if (this.buildingCount === config.buildings.amountPerLevel) {
+      this.buildingCount = 0
+      this.speed += config.buildings.speedIncrease * 10
+      this.gap += config.buildings.gapIncrease
       this.time.addEvent({
         delay: 3000,
         callback: this.changeLevel,
-        callbackScope: this,
-        loop: false
-      });
-      this.time.addEvent({
-        delay: 3000,
-        callback: this.displayLevelText,
-        callbackScope: this,
-        loop: false
-      });
+        callbackScope: this
+      })
     }
   }
 
-  changeLevel() {
-    this.time.removeAllEvents();
-    this.addClouds();
-    this.time.addEvent({
-      delay: 5000,
-      callback: this.addClouds,
-      callbackScope: this,
-      loop: true
-    });
-    this.time.addEvent({
-      event: "addBuildingLoop",
-      delay: (config.buildings.buildingGap * 1000) / (this.level + 1),
-      callback: this.addBuildings,
-      callbackScope: this,
-      loop: true
-    });
-  }
+  changeLevel () {
+    // Increase the level and display on screen
+    this.level++
+    this.levelMessage.setText(`Level ${this.level}`)
+    this.levelMessage.setVisible(true)
+    this.levelMessage.x = config.width / 2 - this.levelMessage.width / 2
 
-  displayLevelText() {
-    this.level++;
-    this.levelMessage.setText("Level " + this.level);
-    this.levelMessage.setVisible(true);
+    // Remove the message
     this.time.addEvent({
       delay: 1000,
-      callback: this.hideLevelText,
-      callbackScope: this,
-      loop: false
-    });
-  }
+      callback: () => this.levelMessage.setVisible(false)
+    })
 
-  hideLevelText() {
-    this.levelMessage.setVisible(false);
+    this.time.removeAllEvents()
+    
+    this.time.addEvent({
+      callback: this.addBuildings,
+      callbackScope: this,
+      delay: this.gap * 1000,
+      event: 'addBuildingLoop',
+      loop: true
+    })
   }
 }
 
-export default Scene1;
+export default Scene1
