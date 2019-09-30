@@ -13,7 +13,6 @@ class Scene2 extends Scene {
 
   preload () {
     this.load.image('retryButton', retryButton)
-    // this.scene.bringToTop()
   }
 
   create () {
@@ -23,25 +22,26 @@ class Scene2 extends Scene {
     retryButton.setInteractive()
     retryButton.on('pointerdown', () => {
       this.scene.stop('Scene2')
-      this.scene.get('Scene1').startGame(true)
+      this.scene.start('Scene1')
     }, this)
 
-    this.message = this.add.text(100, 175, 'Game Over!', {
+    this.message = this.add.text(0, 175, 'Game Over!', {
       fill: '#542e91',
       font: '100px "HolidayExtrasSans"',
       stroke: '#ffee5f',
       strokeThickness: 8
     })
     this.message.setDepth(4)
+    this.message.setX((config.width - this.message.width) / 2)
 
-    this.scoreMessage = this.add.text(175, 300, `Your score: ${this.scene.get('Scene1').score}`, {
+    this.scoreMessage = this.add.text(0, 300, `Your score: ${this.scene.get('Scene1').score}`, {
       fill: '#542e91',
       font: '50px "HolidayExtrasSans"',
       stroke: '#ffee5f',
       strokeThickness: 8
     })
     this.scoreMessage.setDepth(4)
-    this.scoreMessage.x = config.width / 2 - this.scoreMessage.width / 2
+    this.scoreMessage.setX((config.width - this.scoreMessage.width) / 2)
   }
 }
 

@@ -35,9 +35,9 @@ class Scene1 extends Scene {
     // Can only be "balloon" or "plane", but default to "balloon"
     const vehicleTypeFailSafe = ['plane', 'balloon'].includes(config.vehicle.type) ? config.vehicle.type : 'balloon'
     this.vehicle = this.physics.add.sprite(10, 10, vehicleTypeFailSafe);
-    this.vehicle.setPosition(config.width / 2, config.height / 2)
     this.vehicle.setCollideWorldBounds(true)
     this.vehicle.setDepth(2)
+    this.vehicle.setPosition(config.width / 2, config.height / 2)
     this.vehicle.type = vehicleTypeFailSafe
     
     // Make balloon sway
@@ -83,8 +83,10 @@ class Scene1 extends Scene {
   }
 
   startGame (restart = false) {
-    // Reset score
-    this.buildingCount = 0
+    // Reset variables
+    this.buildingsAddedToScreen = 0
+    this.buildingsPassed = 0
+    this.buildingsSecondsApart = 0
     this.level = 1
     this.score = 0
     this.speed = config.buildings.speed * 10
@@ -94,26 +96,28 @@ class Scene1 extends Scene {
     this.spaceKey.enabled = true
 
     // Reset vehicle
-    this.vehicle.alive = true
-    this.vehicle.setGravity(0, config.vehicle.gravity)
-
-    // Reset position of vehicle on restart
     if (restart) {
       this.vehicle.setPosition(config.width / 2, config.height / 2)
     }
+    this.vehicle.setGravity(0, config.vehicle.gravity)
+    this.vehicle.alive = true 
 
     // Stop 'yoyotween'
-    this.tweens.getAllTweens()[1].stop()
+    const TweenToStop = this.tweens.getAllTweens()[1]
+    if (TweenToStop) {
+      TweenToStop.stop()
+    }
 
     // Add event to add buildings
     this.time.removeAllEvents()
-    this.time.addEvent({
+    this.addBuildingTimer = this.time.addEvent({
       callback: this.addBuildings,
       callbackScope: this,
-      delay: (config.buildings.gap * 1000),
-      event: 'addBuildingLoop',
+      delay: (config.buildings.secondsApart * 1000),
       loop: true
     })
+
+    this.scene.resume()
   }
 
   gameOver () {
@@ -124,7 +128,21 @@ class Scene1 extends Scene {
   }
 
   update () {
-    this.levelCheck()
+    this.buildings.children.each(building => {
+      if (building && building.x < -building.width) {
+        building.destroy()
+      }
+    })
+
+    if (this.buildingsPassed === config.buildings.amountPerLevel && this.buildings.children.size === 0) {
+      this.buildingsAddedToScreen = 0
+      this.buildingsPassed = 0
+      this.speed += config.buildings.speedIncrease * 10
+      this.buildingsSecondsApart += config.buildings.secondsApartIncrease
+
+      this.addBuildingTimer.paused = true
+      this.changeLevel()
+    }
 
     if (this.vehicle.body.y > config.height) {
       return this.gameOver()
@@ -144,13 +162,13 @@ class Scene1 extends Scene {
 
   addBuilding (x, y, top = false) {
     const building = this.physics.add.sprite(0, y, 'hotel')
+
     building.setX(building.width + x)
 
     this.buildings.add(building)
 
     building.setVelocity(-this.speed, 0)
     building.body.immovable = true
-    building.outOfBoundsKill = true
     building.setDepth(1)
     if (top) {
 
@@ -171,7 +189,7 @@ class Scene1 extends Scene {
   }
 
   addBuildings () {
-    if (this.buildingCount >= config.buildings.amountPerLevel) return
+    if (this.buildingsAddedToScreen >= config.buildings.amountPerLevel) return
 
     const minY = -25
 
@@ -183,26 +201,15 @@ class Scene1 extends Scene {
 
     this.addBuilding(config.width, y, true)
     this.addBuilding(config.width, y2)
+
+    this.buildingsAddedToScreen += 1
   }
 
   increaseScore (_, rectangle) {
     rectangle.destroy()
     this.score += config.scoreIncrease
     this.labelScore.setText(`Score: ${this.score}`)
-    this.buildingCount += 1
-  }
-
-  levelCheck () {
-    if (this.buildingCount === config.buildings.amountPerLevel) {
-      this.buildingCount = 0
-      this.speed += config.buildings.speedIncrease * 10
-      this.gap += config.buildings.gapIncrease
-      this.time.addEvent({
-        delay: 3000,
-        callback: this.changeLevel,
-        callbackScope: this
-      })
-    }
+    this.buildingsPassed++
   }
 
   changeLevel () {
@@ -218,15 +225,8 @@ class Scene1 extends Scene {
       callback: () => this.levelMessage.setVisible(false)
     })
 
-    this.time.removeAllEvents()
-    
-    this.time.addEvent({
-      callback: this.addBuildings,
-      callbackScope: this,
-      delay: this.gap * 1000,
-      event: 'addBuildingLoop',
-      loop: true
-    })
+    this.addBuildingTimer.delay = this.buildingsSecondsApart * 1000
+    this.addBuildingTimer.paused = false
   }
 }
 

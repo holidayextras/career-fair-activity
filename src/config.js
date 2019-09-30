@@ -3,10 +3,10 @@
 export default {
 
   buildings: {
-    amountPerLevel: 8,
+    amountPerLevel: 1,
     // In seconds
-    gap: 5,
-    gapIncrease: 1,
+    secondsApart: 5,
+    secondsApartIncrease: 1,
     speed: 8,
     speedIncrease: 2
   },
@@ -22,7 +22,7 @@ export default {
   scoreIncrease: 1,
 
   vehicle: {
-    gravity: 90,
+    gravity: 50,
     gravityDecreaseAmount: 50,
     plane: {
       thrust: 15,
