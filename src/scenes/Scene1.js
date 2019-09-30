@@ -40,18 +40,20 @@ class Scene1 extends Scene {
     this.vehicle.setPosition(config.width / 2, config.height / 2)
     this.vehicle.type = vehicleTypeFailSafe
     
-    // Make balloon sway
-    this.tweens.add({
-      angle: {
-        from: 12,
-        to: 2
-      },
-      duration: 2000,
-      ease: 'Sine.easeInOut',
-      repeat: -1,
-      targets: this.vehicle,
-      yoyo: true
-    })
+    if (this.vehicle.type === 'balloon') {
+      // Make balloon sway
+      this.tweens.add({
+        angle: {
+          from: 12,
+          to: 2
+        },
+        duration: 2000,
+        ease: 'Sine.easeInOut',
+        repeat: -1,
+        targets: this.vehicle,
+        yoyo: true
+      })
+    }
 
     this.tweens.add({
       duration: 2000,
@@ -83,6 +85,7 @@ class Scene1 extends Scene {
   }
 
   startGame (restart = false) {
+
     // Reset variables
     this.buildingsAddedToScreen = 0
     this.buildingsPassed = 0
@@ -99,17 +102,19 @@ class Scene1 extends Scene {
     if (restart) {
       this.vehicle.setPosition(config.width / 2, config.height / 2)
     }
-    this.vehicle.setGravity(0, config.vehicle.gravity)
     this.vehicle.alive = true 
+    this.vehicle.setGravity(0, config.vehicle.gravity)
+    this.vehicle.setVisible(true)
 
     // Stop 'yoyotween'
-    const TweenToStop = this.tweens.getAllTweens()[1]
+    const tweens = this.tweens.getAllTweens()
+    // Last one, not always 1
+    const TweenToStop = tweens[tweens.length - 1]
     if (TweenToStop) {
       TweenToStop.stop()
     }
 
     // Add event to add buildings
-    this.time.removeAllEvents()
     this.addBuildingTimer = this.time.addEvent({
       callback: this.addBuildings,
       callbackScope: this,
@@ -117,23 +122,44 @@ class Scene1 extends Scene {
       loop: true
     })
 
+    // Add the first buildings
+    this.addBuildings()
+
     this.scene.resume()
   }
 
   gameOver () {
     this.vehicle.alive = false
-    this.scene.stop('Scene1')
+    this.vehicle.setVisible(false)
+
+    this.labelScore.setVisible(false)
+    
+    // Remove all buildings still present
+    this.buildings.clear(true, true)
+
+    this.time.removeAllEvents()
+    
+    // Pause this scene, so we can easily restart it.
+    this.scene.pause()
+
+    // Move to 'game over' scene
     const endScene = this.scene.get('Scene2')
     endScene.scene.start('Scene2')
   }
 
-  update () {
+  update (t, dt) {
+
+    // Ensures the buildings that our out the viewport are removed
     this.buildings.children.each(building => {
       if (building && building.x < -building.width) {
         building.destroy()
       }
     })
 
+    // Update score text
+    this.labelScore.setText(`Score: ${this.score}`)
+
+    // Passed all buildings?
     if (this.buildingsPassed === config.buildings.amountPerLevel && this.buildings.children.size === 0) {
       this.buildingsAddedToScreen = 0
       this.buildingsPassed = 0
@@ -144,18 +170,27 @@ class Scene1 extends Scene {
       this.changeLevel()
     }
 
+    // Fallen below the screen, you're game over!
     if (this.vehicle.body.y > config.height) {
       return this.gameOver()
     }
 
-    if (this.spaceKey.isDown) {
+    const pointer = this.input.activePointer
+    const dir = this.vehicle.body.velocity;
+    const step = dt * 0.001 * 2; // convert to sec
+    const targetRotation = dir.angle();
+
+    // Make the vehicle float up
+    if (this.spaceKey.isDown || pointer.isDown) {
       this.vehicle.setVelocity(0, -config.vehicle.gravityDecreaseAmount)
+
+      // If we are a plane, point the nose upwards
       if (this.vehicle.type === 'plane') {
-        if (this.vehicle.angle >= -3) {
-          this.vehicle.angle -= config.vehicle.plane.thrust / 100
-        } else if (this.vehicle.angle >= -10) {
-          this.vehicle.angle -= config.vehicle.plane.thrust / 100
-        }
+        this.vehicle.body.rotation = Phaser.Math.Linear(this.vehicle.body.rotation, -targetRotation, step)
+      }
+    } else {
+      if (this.vehicle.type === 'plane' && dir.y > 0) {
+        this.vehicle.body.rotation = Phaser.Math.Linear(this.vehicle.body.rotation, targetRotation, step)
       }
     }
   }
@@ -208,11 +243,12 @@ class Scene1 extends Scene {
   increaseScore (_, rectangle) {
     rectangle.destroy()
     this.score += config.scoreIncrease
-    this.labelScore.setText(`Score: ${this.score}`)
     this.buildingsPassed++
   }
 
   changeLevel () {
+    if (this.vehicle.alive !== true) return
+    
     // Increase the level and display on screen
     this.level++
     this.levelMessage.setText(`Level ${this.level}`)

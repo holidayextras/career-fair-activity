@@ -21,8 +21,9 @@ class Scene2 extends Scene {
     retryButton.setDepth(4)
     retryButton.setInteractive()
     retryButton.on('pointerdown', () => {
-      this.scene.stop('Scene2')
-      this.scene.start('Scene1')
+      this.scene.stop()
+      this.scene.resume('Scene1')
+      this.scene.get('Scene1').startGame(true)
     }, this)
 
     this.message = this.add.text(0, 175, 'Game Over!', {

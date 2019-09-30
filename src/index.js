@@ -11,7 +11,7 @@ import config from './config'
 
 // Configure the game
 const game = new Game({
-  backgroundColor: '#fddc06',
+  backgroundColor: '#ff9a01',
   height: config.height,
   parent: 'game-container',
   physics: {

@@ -30,7 +30,7 @@ export default {
     },
 
     // "balloon" or "plane"
-    type: 'balloon'
+    type: 'plane'
   },
 
   weather: {
