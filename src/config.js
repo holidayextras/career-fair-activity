@@ -3,12 +3,12 @@
 export default {
 
   buildings: {
-    amountPerLevel: 1,
+    amountPerLevel: 8,
     // In seconds
     secondsApart: 5,
-    secondsApartIncrease: 1,
-    speed: 8,
-    speedIncrease: 2
+    secondsApartIncrease: 0.5,
+    speed: 10,
+    speedIncrease: 4
   },
 
   debug: false,
@@ -18,6 +18,9 @@ export default {
   width: 800,
 
   fillScreen: true,
+
+  hasHighScores: true,
+  numberOfPlayersInHighScore: 5,
 
   scoreIncrease: 1,
 
@@ -30,7 +33,7 @@ export default {
     },
 
     // "balloon" or "plane"
-    type: 'plane'
+    type: 'balloon'
   },
 
   weather: {

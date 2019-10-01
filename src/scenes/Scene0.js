@@ -1,7 +1,7 @@
 import { Scene } from 'phaser'
 
-import { default as startImage } from '../assets/startButton.png'
-import { default as titleImage } from '../assets/flightOfTheCoder.png'
+import startImage from '../assets/startButton.png'
+import titleImage from '../assets/flightOfTheCoder.png'
 
 class Scene0 extends Scene {
   constructor () {
@@ -14,8 +14,8 @@ class Scene0 extends Scene {
   preload () {
     this.scene.bringToTop()
 
-    this.load.image("title", titleImage);
-    this.load.image("startButton", startImage);
+    this.load.image('title', titleImage)
+    this.load.image('startButton', startImage)
   }
 
   create () {
@@ -41,11 +41,10 @@ class Scene0 extends Scene {
       ease: 'Sine.easeInOut',
       onComplete: () => {
         this.scene.stop('Scene0')
-        this.scene.get('Scene1').startGame() 
+        this.scene.get('Scene1').startGame()
       },
       targets: [this.title, this.startButton]
     })
-    
   }
 }
 

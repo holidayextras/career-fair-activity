@@ -1,8 +1,8 @@
-import { Scene } from 'phaser'
+import Phaser, { Scene } from 'phaser'
 
-import { default as hotAirBalloon } from '../assets/hotAirBalloon.png'
-import { default as hotelImage } from '../assets/hotel.png'
-import { default as planeImage } from '../assets/plane.png'
+import hotAirBalloon from '../assets/hotAirBalloon.png'
+import hotelImage from '../assets/hotel.png'
+import planeImage from '../assets/plane.png'
 
 import config from '../config'
 
@@ -10,7 +10,7 @@ class Scene1 extends Scene {
   constructor () {
     super({
       active: true,
-      key: "Scene1"
+      key: 'Scene1'
     })
   }
 
@@ -31,15 +31,16 @@ class Scene1 extends Scene {
 
     // Group to add our assets to in order to move them
     this.buildings = this.physics.add.group()
+    this.empties = []
 
     // Can only be "balloon" or "plane", but default to "balloon"
     const vehicleTypeFailSafe = ['plane', 'balloon'].includes(config.vehicle.type) ? config.vehicle.type : 'balloon'
-    this.vehicle = this.physics.add.sprite(10, 10, vehicleTypeFailSafe);
+    this.vehicle = this.physics.add.sprite(10, 10, vehicleTypeFailSafe)
     this.vehicle.setCollideWorldBounds(true)
     this.vehicle.setDepth(2)
     this.vehicle.setPosition(config.width / 2, config.height / 2)
     this.vehicle.type = vehicleTypeFailSafe
-    
+
     if (this.vehicle.type === 'balloon') {
       // Make balloon sway
       this.tweens.add({
@@ -80,16 +81,15 @@ class Scene1 extends Scene {
       font: '100px "HolidayExtrasSans"',
       stroke: '#ffee5f',
       strokeThickness: 8
-    })   
+    })
     this.levelMessage.setDepth(4)
   }
 
   startGame (restart = false) {
-
     // Reset variables
     this.buildingsAddedToScreen = 0
     this.buildingsPassed = 0
-    this.buildingsSecondsApart = 0
+    this.buildingsSecondsApart = config.buildings.secondsApart
     this.level = 1
     this.score = 0
     this.speed = config.buildings.speed * 10
@@ -102,7 +102,7 @@ class Scene1 extends Scene {
     if (restart) {
       this.vehicle.setPosition(config.width / 2, config.height / 2)
     }
-    this.vehicle.alive = true 
+    this.vehicle.alive = true
     this.vehicle.setGravity(0, config.vehicle.gravity)
     this.vehicle.setVisible(true)
 
@@ -122,7 +122,6 @@ class Scene1 extends Scene {
       loop: true
     })
 
-    // Add the first buildings
     this.addBuildings()
 
     this.scene.resume()
@@ -133,12 +132,13 @@ class Scene1 extends Scene {
     this.vehicle.setVisible(false)
 
     this.labelScore.setVisible(false)
-    
+
     // Remove all buildings still present
     this.buildings.clear(true, true)
+    this.empties.forEach(empty => empty && empty.destroy())
 
     this.time.removeAllEvents()
-    
+
     // Pause this scene, so we can easily restart it.
     this.scene.pause()
 
@@ -148,8 +148,7 @@ class Scene1 extends Scene {
   }
 
   update (t, dt) {
-
-    // Ensures the buildings that our out the viewport are removed
+    // Ensures the buildings that are out the viewport are removed
     this.buildings.children.each(building => {
       if (building && building.x < -building.width) {
         building.destroy()
@@ -164,9 +163,8 @@ class Scene1 extends Scene {
       this.buildingsAddedToScreen = 0
       this.buildingsPassed = 0
       this.speed += config.buildings.speedIncrease * 10
-      this.buildingsSecondsApart += config.buildings.secondsApartIncrease
+      this.buildingsSecondsApart -= config.buildings.secondsApartIncrease
 
-      this.addBuildingTimer.paused = true
       this.changeLevel()
     }
 
@@ -176,9 +174,9 @@ class Scene1 extends Scene {
     }
 
     const pointer = this.input.activePointer
-    const dir = this.vehicle.body.velocity;
-    const step = dt * 0.001 * 2; // convert to sec
-    const targetRotation = dir.angle();
+    const dir = this.vehicle.body.velocity
+    const step = dt * 0.001 * 2 // convert to sec
+    const targetRotation = dir.angle()
 
     // Make the vehicle float up
     if (this.spaceKey.isDown || pointer.isDown) {
@@ -206,17 +204,16 @@ class Scene1 extends Scene {
     building.body.immovable = true
     building.setDepth(1)
     if (top) {
-
       // Flip the hotel upside down
       building.setFlipY(true)
-    
+
       // Add an invisible layer so we can increase the score
       const rect = this.add.rectangle(x + building.width, 0, 1, this.sys.game.config.height, 0, config.debug ? 1 : 0)
       rect.setOrigin(0, 0)
       const empty = this.physics.add.existing(rect)
       empty.body.moves = true
       empty.body.setVelocity(-this.speed, 0)
-      
+      this.empties.push(empty)
       this.physics.add.overlap(this.vehicle, empty, this.increaseScore, null, this)
     }
 
@@ -248,7 +245,7 @@ class Scene1 extends Scene {
 
   changeLevel () {
     if (this.vehicle.alive !== true) return
-    
+
     // Increase the level and display on screen
     this.level++
     this.levelMessage.setText(`Level ${this.level}`)
@@ -257,12 +254,19 @@ class Scene1 extends Scene {
 
     // Remove the message
     this.time.addEvent({
-      delay: 1000,
+      delay: 1500,
       callback: () => this.levelMessage.setVisible(false)
     })
 
-    this.addBuildingTimer.delay = this.buildingsSecondsApart * 1000
-    this.addBuildingTimer.paused = false
+    this.addBuildingTimer.destroy()
+
+    // Add event to add buildings
+    this.addBuildingTimer = this.time.addEvent({
+      callback: this.addBuildings,
+      callbackScope: this,
+      delay: (this.buildingsSecondsApart * 1000),
+      loop: true
+    })
   }
 }
 

@@ -1,6 +1,6 @@
 import { Scene } from 'phaser'
 
-import { default as retryButton } from '../assets/retry.png'
+import retryButton from '../assets/retry.png'
 
 import config from '../config'
 
@@ -26,7 +26,7 @@ class Scene2 extends Scene {
       this.scene.get('Scene1').startGame(true)
     }, this)
 
-    this.message = this.add.text(0, 175, 'Game Over!', {
+    this.message = this.add.text(0, 40, 'Game Over!', {
       fill: '#542e91',
       font: '100px "HolidayExtrasSans"',
       stroke: '#ffee5f',
@@ -34,15 +34,102 @@ class Scene2 extends Scene {
     })
     this.message.setDepth(4)
     this.message.setX((config.width - this.message.width) / 2)
+    this.nameInput = null
+    this.userScore = this.scene.get('Scene1').score
 
-    this.scoreMessage = this.add.text(0, 300, `Your score: ${this.scene.get('Scene1').score}`, {
-      fill: '#542e91',
-      font: '50px "HolidayExtrasSans"',
-      stroke: '#ffee5f',
-      strokeThickness: 8
+    if (config.hasHighScores) {
+      const styles = {
+        fill: '#542e91',
+        font: '32px "HolidayExtrasSans"',
+        stroke: '#ffee5f',
+        strokeThickness: 8
+      }
+      this.scoreTitle = this.add.text(0, 160, `THE ${config.numberOfPlayersInHighScore} BEST PLAYERS\nRANK        SCORE       NAME`, Object.assign({}, styles, { align: 'center' }))
+      this.scoreTitle.setX((config.width - this.scoreTitle.width) / 2)
+      this.rankText = this.add.text(230, this.scoreTitle.y + this.scoreTitle.height, '', styles)
+      this.scoresText = this.add.text(370, this.rankText.y, '', styles)
+      this.namesText = this.add.text(505, this.rankText.y, '', styles)
+
+      // Put your name in here
+      this.nameInput = this.add.dom(675, 0, 'input', 'color: #542e91; font: 32px "HolidayExtrasSans"; background: transparent; outline: none; border: none;')
+      this.nameInput.node.focus()
+      this.nameInput.setVisible(false)
+
+      // Save on enter
+      this.input.keyboard.on('keyup', (event) => {
+        if (event.target === this.nameInput.node) {
+          this.nameInput.node.value = this.nameInput.node.value.toUpperCase().substring(0, 10)
+        }
+      })
+      this.input.keyboard.on('keydown_ENTER', this.saveScore, this)
+
+      this.showHighScores()
+    }
+
+    this.time.addEvent({
+      delay: 60000,
+      callback: () => document.location.reload()
     })
-    this.scoreMessage.setDepth(4)
-    this.scoreMessage.setX((config.width - this.scoreMessage.width) / 2)
+  }
+
+  showHighScores () {
+    // Show highscore
+    const names = []
+    const savedScores = window.localStorage.getItem('scores') || '[]'
+    const scores = []
+    let rank = null
+    JSON.parse(savedScores).forEach((s, i) => {
+      // If config gets changed, we want to calculate based on the new config
+      const score = (s.score / s.baseScore) * config.scoreIncrease
+      if (this.userScore !== 0 && this.userScore >= score && !names.includes(' ') && this.nameInput.node) {
+        names.push(' ')
+        scores.push(this.userScore)
+        rank = i + 1
+      }
+      names.push(s.name)
+      scores.push(score)
+    })
+
+    // Means we haven't added a space for the new score, so must be lowest score
+    if (this.userScore !== 0 && !names.includes(' ') && this.nameInput.node) {
+      scores.push(this.userScore)
+      rank = scores.length
+    }
+
+    // Use the indexes of another array to make the ranks
+    this.rankText.text = scores.map((_, i) => i + 1).splice(0, config.numberOfPlayersInHighScore).join('\n')
+    this.scoresText.text = scores.splice(0, config.numberOfPlayersInHighScore).join('\n')
+    this.namesText.text = names.splice(0, config.numberOfPlayersInHighScore).join('\n').toUpperCase()
+
+    if (rank && rank <= config.numberOfPlayersInHighScore) {
+      this.nameInput.setVisible(true)
+      this.nameInput.y = 270 + (45 * (rank - 1))
+    }
+  }
+
+  saveScore () {
+    if (window && window.localStorage) {
+      let scores = JSON.parse(window.localStorage.getItem('scores') || '[]')
+      scores.push({
+        baseScore: config.scoreIncrease,
+        name: this.nameInput.node.value || 'Anonymous',
+        score: this.userScore,
+        timeStamp: new Date().getTime() // To sort if scores are the same
+      })
+      scores = scores.sort((a, b) => {
+        if (a.score > b.score) return -1
+        if (a.score < b.score) return 1
+        if (a.timeStamp > b.timeStamp) return -1
+        if (a.timeStamp < b.timeStamp) return 1
+        return 0
+      })
+
+      window.localStorage.setItem('scores', JSON.stringify(scores))
+    }
+
+    this.nameInput.destroy()
+
+    this.showHighScores()
   }
 }
 
