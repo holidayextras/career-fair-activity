@@ -43,6 +43,14 @@ class Scene2 extends Scene {
     })
     this.scoreMessage.setDepth(4)
     this.scoreMessage.setX((config.width - this.scoreMessage.width) / 2)
+    this.time.addEvent({
+      delay: 10000,
+      callback: () => this.refresh()
+    })
+  }
+
+  refresh () {
+    document.location.reload();
   }
 }
 
