@@ -19,20 +19,30 @@ class Scene2 extends Scene {
   }
 
   create () {
-    const retryButton = this.add.image(400, 530, 'retryButton')
+    const retryButton = this.add.image(300, 530, 'retryButton')
     retryButton.setScale(0.4, 0.4)
     retryButton.setDepth(4)
     retryButton.setInteractive()
     retryButton.on('pointerdown', () => {
+      this.game.somethingMagic = false
       this.scene.stop()
       this.scene.resume('Scene1')
       this.scene.get('Scene1').startGame(true)
     }, this)
 
+    // Take me to codesandbox
+    const codesandboxButton = this.add.image(500, 530, 'retryButton')
+    codesandboxButton.setScale(0.4, 0.4)
+    codesandboxButton.setDepth(4)
+    codesandboxButton.setInteractive()
+    codesandboxButton.on('pointerdown', () => {
+      window.open('https://codesandbox.io/s/flightofthecoder-m1umv')
+    }, this)
+
     this.message = this.add.text(0, 40, 'Game Over!', {
-      fill: '#542e91',
+      fill: config.text.colour,
       font: '100px "HolidayExtrasSans"',
-      stroke: '#ffee5f',
+      stroke: config.text.strokeColour,
       strokeThickness: 8
     })
     this.message.setDepth(4)
@@ -42,9 +52,9 @@ class Scene2 extends Scene {
 
     if (config.hasHighScores) {
       const styles = {
-        fill: '#542e91',
+        fill: config.text.colour,
         font: '32px "HolidayExtrasSans"',
-        stroke: '#ffee5f',
+        stroke: config.text.strokeColour,
         strokeThickness: 8
       }
       this.scoreTitle = this.add.text(0, 160, `THE ${config.numberOfPlayersInHighScore} BEST PLAYERS\nRANK        SCORE       NAME`, Object.assign({}, styles, { align: 'center' }))
@@ -54,7 +64,7 @@ class Scene2 extends Scene {
       this.namesText = this.add.text(505, this.rankText.y, '', styles)
 
       // Put your name in here
-      this.nameInput = this.add.dom(675, 0, 'input', 'color: #542e91; font: 32px "HolidayExtrasSans"; background: transparent; outline: none; border: none;')
+      this.nameInput = this.add.dom(675, 0, 'input', `color: ${config.text.colour}; font: 32px "HolidayExtrasSans"; background: transparent; outline: none; border: none;`)
       this.nameInput.node.focus()
       this.nameInput.setVisible(false)
 
@@ -77,7 +87,7 @@ class Scene2 extends Scene {
 
   getSavedScores () {
     try {
-      fetch("https://api.jsonbin.io/b/5d947c639d20fe2188788727/latest")
+      fetch('https://api.jsonbin.io/b/5d947c639d20fe2188788727/latest')
         .then(response => {
           if (!response.ok) {
             throw new Error('Can\'t load from jsonbin')
@@ -150,10 +160,10 @@ class Scene2 extends Scene {
     })
 
     try {
-      fetch("https://api.jsonbin.io/b/5d947c639d20fe2188788727", {
-        method: "PUT",
+      fetch('https://api.jsonbin.io/b/5d947c639d20fe2188788727', {
+        method: 'PUT',
         headers: {
-          "Content-Type": "application/json"
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(this.savedScores)
       }).then(response => {

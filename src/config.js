@@ -24,6 +24,11 @@ export default {
 
   scoreIncrease: 1,
 
+  text: {
+    colour: '#542e91',
+    strokeColour: '#ffee5f'
+  },
+
   vehicle: {
     gravity: 50,
     gravityDecreaseAmount: 50,

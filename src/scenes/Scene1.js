@@ -25,8 +25,6 @@ class Scene1 extends Scene {
   }
 
   create () {
-    this.physics.world.checkCollision.down = false
-
     this.spaceKey = this.input.keyboard.addKey('SPACE')
 
     // Group to add our assets to in order to move them
@@ -56,7 +54,7 @@ class Scene1 extends Scene {
       })
     }
 
-    this.tweens.add({
+    this.yoyoTween = this.tweens.add({
       duration: 2000,
       ease: 'Sine.easeInOut',
       repeat: -1,
@@ -68,8 +66,9 @@ class Scene1 extends Scene {
     // To display our score
     this.labelScore = this.add.text(20, 20, 'Score: 0', {
       font: '32px "HolidayExtrasSans"',
-      fill: 'purple',
-      backgroundColor: '#fddc06'
+      fill: config.text.colour,
+      stroke: config.text.strokeColour,
+      strokeThickness: 8
     })
     this.labelScore.setDepth(3)
     this.labelScore.setVisible(false)
@@ -77,9 +76,9 @@ class Scene1 extends Scene {
 
     // To display the level the player is in
     this.levelMessage = this.add.text(100, 175, '', {
-      fill: '#542e91',
+      fill: config.text.colour,
       font: '100px "HolidayExtrasSans"',
-      stroke: '#ffee5f',
+      stroke: config.text.strokeColour,
       strokeThickness: 8
     })
     this.levelMessage.setDepth(4)
@@ -87,6 +86,9 @@ class Scene1 extends Scene {
 
   startGame (restart = false) {
     // Reset variables
+    if (!this.game.somethingMagic) {
+      this.physics.world.checkCollision.down = false
+    }
     this.buildingsAddedToScreen = 0
     this.buildingsPassed = 0
     this.buildingsSecondsApart = config.buildings.secondsApart
@@ -100,18 +102,16 @@ class Scene1 extends Scene {
 
     // Reset vehicle
     if (restart) {
+      this.vehicle.body.stop()
       this.vehicle.setPosition(config.width / 2, config.height / 2)
     }
     this.vehicle.alive = true
     this.vehicle.setGravity(0, config.vehicle.gravity)
+    this.vehicle.setVelocity(0, 0)
     this.vehicle.setVisible(true)
 
-    // Stop 'yoyotween'
-    const tweens = this.tweens.getAllTweens()
-    // Last one, not always 1
-    const TweenToStop = tweens[tweens.length - 1]
-    if (TweenToStop) {
-      TweenToStop.stop()
+    if (this.yoyoTween) {
+      this.yoyoTween.stop()
     }
 
     // Add event to add buildings
@@ -123,6 +123,14 @@ class Scene1 extends Scene {
     })
 
     this.addBuildings()
+
+    if (this.game.somethingMagic) {
+      this.time.addEvent({
+        callback: this.gameOver,
+        callbackScope: this,
+        delay: 60000
+      })
+    }
 
     this.scene.resume()
   }
@@ -169,7 +177,7 @@ class Scene1 extends Scene {
     }
 
     // Fallen below the screen, you're game over!
-    if (this.vehicle.body.y > config.height) {
+    if (this.vehicle.body.y > config.height && !this.game.somethingMagic) {
       return this.gameOver()
     }
 
@@ -217,7 +225,9 @@ class Scene1 extends Scene {
       this.physics.add.overlap(this.vehicle, empty, this.increaseScore, null, this)
     }
 
-    this.physics.add.collider(this.vehicle, building, this.gameOver, null, this)
+    if (!this.game.somethingMagic) {
+      this.physics.add.collider(this.vehicle, building, this.gameOver, null, this)
+    }
   }
 
   addBuildings () {
