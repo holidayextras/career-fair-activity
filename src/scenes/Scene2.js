@@ -1,5 +1,6 @@
 import { Scene } from 'phaser'
 
+import makeYourOwnButton from '../assets/makeYourOwn.png'
 import retryButton from '../assets/retry.png'
 
 import config from '../config'
@@ -15,11 +16,12 @@ class Scene2 extends Scene {
   }
 
   preload () {
+    this.load.image('makeYourOwnButton', makeYourOwnButton)
     this.load.image('retryButton', retryButton)
   }
 
   create () {
-    const retryButton = this.add.image(300, 530, 'retryButton')
+    const retryButton = this.add.image(150, 530, 'retryButton')
     retryButton.setScale(0.4, 0.4)
     retryButton.setDepth(4)
     retryButton.setInteractive()
@@ -31,17 +33,17 @@ class Scene2 extends Scene {
     }, this)
 
     // Take me to codesandbox
-    const codesandboxButton = this.add.image(500, 530, 'retryButton')
-    codesandboxButton.setScale(0.4, 0.4)
-    codesandboxButton.setDepth(4)
-    codesandboxButton.setInteractive()
-    codesandboxButton.on('pointerdown', () => {
+    const makeYourOwnButton = this.add.image(520, 530, 'makeYourOwnButton')
+    makeYourOwnButton.setScale(0.4, 0.4)
+    makeYourOwnButton.setDepth(4)
+    makeYourOwnButton.setInteractive()
+    makeYourOwnButton.on('pointerdown', () => {
       window.open('https://codesandbox.io/s/github/holidayextras/career-fair-activity')
     }, this)
 
-    this.message = this.add.text(0, 40, 'Game Over!', {
+    this.message = this.add.text(0, 20, 'Game Over!', {
       fill: config.text.colour,
-      font: '100px "HolidayExtrasSans"',
+      font: '80px "HolidayExtrasSans"',
       stroke: config.text.strokeColour,
       strokeThickness: 8
     })
@@ -57,7 +59,7 @@ class Scene2 extends Scene {
         stroke: config.text.strokeColour,
         strokeThickness: 8
       }
-      this.scoreTitle = this.add.text(0, 160, `THE ${config.numberOfPlayersInHighScore} BEST PLAYERS\nRANK        SCORE       NAME`, Object.assign({}, styles, { align: 'center' }))
+      this.scoreTitle = this.add.text(0, 135, `THE ${config.numberOfPlayersInHighScore} BEST PLAYERS\nRANK        SCORE       NAME`, Object.assign({}, styles, { align: 'center' }))
       this.scoreTitle.setX((config.width - this.scoreTitle.width) / 2)
       this.rankText = this.add.text(230, this.scoreTitle.y + this.scoreTitle.height, '', styles)
       this.scoresText = this.add.text(370, this.rankText.y, '', styles)
@@ -117,7 +119,7 @@ class Scene2 extends Scene {
 
     this.savedScores.forEach((s, i) => {
       // If config gets changed, we want to calculate based on the new config
-      const score = (s.score / s.baseScore) * config.scoreIncrease
+      const score = (s.score / (s.baseScore || 1)) * config.scoreIncrease
       if (this.userScore !== 0 && this.userScore >= score && !names.includes(' ') && this.nameInput.node) {
         names.push(' ')
         scores.push(this.userScore)
@@ -140,7 +142,7 @@ class Scene2 extends Scene {
 
     if (rank && rank <= config.numberOfPlayersInHighScore) {
       this.nameInput.setVisible(true)
-      this.nameInput.y = 270 + (45 * (rank - 1))
+      this.nameInput.y = 245 + (45 * (rank - 1))
     }
   }
 

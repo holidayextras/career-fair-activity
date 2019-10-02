@@ -21,7 +21,7 @@ class Scene0 extends Scene {
   }
 
   create () {
-    this.title = this.add.image(400, 200, 'title')
+    this.title = this.add.image(400, 120, 'title')
     this.title.setDepth(4)
     this.title.setInteractive()
     this.title.setScale(0.5, 0.5)
