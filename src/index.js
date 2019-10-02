@@ -33,22 +33,4 @@ const game = new Game({
   width: config.width
 })
 
-// Prepopulate if we have no scores
-if (window && window.localStorage && !window.localStorage.getItem('scores')) {
-  const names = ['Will', 'Thomas', 'Cem', 'Billie', 'HOLIDAYEXT']
-  const fakeScores = names.map((name, i) => ({
-    baseScore: config.scoreIncrease,
-    name,
-    score: Math.floor(Math.random() * 30),
-    timeStamp: new Date().getTime() + i
-  })).sort((a, b) => {
-    if (a.score > b.score) return -1
-    if (a.score < b.score) return 1
-    if (a.timeStamp > b.timeStamp) return -1
-    if (a.timeStamp < b.timeStamp) return 1
-    return 0
-  })
-  window.localStorage.setItem('scores', JSON.stringify(fakeScores))
-}
-
 export default game

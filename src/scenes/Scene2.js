@@ -9,6 +9,9 @@ class Scene2 extends Scene {
     super({
       key: 'Scene2'
     })
+
+    this.savedScores = []
+    this.getSavedScores()
   }
 
   preload () {
@@ -72,13 +75,37 @@ class Scene2 extends Scene {
     })
   }
 
+  getSavedScores () {
+    try {
+      fetch("https://api.jsonbin.io/b/5d947c639d20fe2188788727/latest")
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Can\'t load from jsonbin')
+          }
+          return response.json()
+        })
+        .then(response => {
+          if (response) {
+            this.savedScores = response
+          }
+        })
+    } catch (error) {
+      console.warn('there was an error', error)
+    }
+  }
+
   showHighScores () {
     // Show highscore
     const names = []
-    const savedScores = window.localStorage.getItem('scores') || '[]'
     const scores = []
     let rank = null
-    JSON.parse(savedScores).forEach((s, i) => {
+
+    // Making sure we have an actual array to loop
+    if (!this.savedScores || !Array.isArray(this.savedScores)) {
+      this.savedScores = []
+    }
+
+    this.savedScores.forEach((s, i) => {
       // If config gets changed, we want to calculate based on the new config
       const score = (s.score / s.baseScore) * config.scoreIncrease
       if (this.userScore !== 0 && this.userScore >= score && !names.includes(' ') && this.nameInput.node) {
@@ -108,28 +135,42 @@ class Scene2 extends Scene {
   }
 
   saveScore () {
-    if (window && window.localStorage) {
-      let scores = JSON.parse(window.localStorage.getItem('scores') || '[]')
-      scores.push({
-        baseScore: config.scoreIncrease,
-        name: this.nameInput.node.value || 'Anonymous',
-        score: this.userScore,
-        timeStamp: new Date().getTime() // To sort if scores are the same
-      })
-      scores = scores.sort((a, b) => {
-        if (a.score > b.score) return -1
-        if (a.score < b.score) return 1
-        if (a.timeStamp > b.timeStamp) return -1
-        if (a.timeStamp < b.timeStamp) return 1
-        return 0
-      })
+    this.savedScores.push({
+      baseScore: config.scoreIncrease,
+      name: this.nameInput.node.value || 'Anonymous',
+      score: this.userScore,
+      timeStamp: new Date().getTime() // To sort if scores are the same
+    })
+    this.savedScores = this.savedScores.sort((a, b) => {
+      if (a.score > b.score) return -1
+      if (a.score < b.score) return 1
+      if (a.timeStamp > b.timeStamp) return -1
+      if (a.timeStamp < b.timeStamp) return 1
+      return 0
+    })
 
-      window.localStorage.setItem('scores', JSON.stringify(scores))
+    try {
+      fetch("https://api.jsonbin.io/b/5d947c639d20fe2188788727", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(this.savedScores)
+      }).then(response => {
+        if (!response.ok) {
+          throw new Error('Can\'t save to jsonbin')
+        }
+        // Remove name input
+        this.nameInput.destroy()
+
+        this.showHighScores()
+      })
+    } catch (error) {
+      console.warn(error)
+
+      // Show scores regardless
+      this.showHighScores()
     }
-
-    this.nameInput.destroy()
-
-    this.showHighScores()
   }
 }
 
