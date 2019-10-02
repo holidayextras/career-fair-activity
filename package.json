@@ -1,7 +1,7 @@
 {
-  "name": "parcel-sandbox",
+  "name": "flightofthecoder",
   "version": "1.0.0",
-  "description": "Simple Parcel Sandbox",
+  "description": "Career Fair interactive activity",
   "main": "index.html",
   "scripts": {
     "start": "parcel index.html --open",
@@ -19,6 +19,9 @@
     "parcel-bundler": "^1.6.1"
   },
   "standard": {
+    "globals": [
+      "fetch"
+    ],
     "ignore": [
       "dist"
     ]
