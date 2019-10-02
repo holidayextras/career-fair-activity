@@ -36,7 +36,7 @@ class Scene2 extends Scene {
     codesandboxButton.setDepth(4)
     codesandboxButton.setInteractive()
     codesandboxButton.on('pointerdown', () => {
-      window.open('https://codesandbox.io/s/flightofthecoder-m1umv')
+      window.open('https://codesandbox.io/s/github/holidayextras/career-fair-activity')
     }, this)
 
     this.message = this.add.text(0, 40, 'Game Over!', {
