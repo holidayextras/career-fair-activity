@@ -74,6 +74,17 @@ class Scene1 extends Scene {
     this.labelScore.setVisible(false)
     this.labelScore.setX(30)
 
+    // To display the time
+    this.labelTime = this.add.text(20, 20, '00:00', {
+      font: '32px "HolidayExtrasSans"',
+      fill: config.text.colour,
+      stroke: config.text.strokeColour,
+      strokeThickness: 8
+    })
+    this.labelTime.setDepth(3)
+    this.labelTime.setVisible(false)
+    this.labelTime.setX(config.width - this.labelTime.width - 30)
+
     // To display the level the player is in
     this.levelMessage = this.add.text(100, 175, '', {
       fill: config.text.colour,
@@ -96,7 +107,10 @@ class Scene1 extends Scene {
     this.score = 0
     this.speed = config.buildings.speed * 10
 
+    this.startTime = new Date().getTime()
+
     this.labelScore.setVisible(true)
+    this.labelTime.setVisible(true)
 
     this.spaceKey.enabled = true
 
@@ -140,6 +154,7 @@ class Scene1 extends Scene {
     this.vehicle.setVisible(false)
 
     this.labelScore.setVisible(false)
+    this.labelTime.setVisible(false)
 
     // Remove all buildings still present
     this.buildings.clear(true, true)
@@ -165,6 +180,18 @@ class Scene1 extends Scene {
 
     // Update score text
     this.labelScore.setText(`Score: ${this.score}`)
+
+    // Update time
+    if (this.labelTime.visible) {
+      const elapsedTime = Math.floor((new Date().getTime() - this.startTime) / 1000)
+
+      let seconds = elapsedTime % 60
+      let minutes = Math.floor(elapsedTime / 60)
+
+      seconds = seconds < 10 ? `0${seconds}` : seconds
+      minutes = minutes < 10 ? `0${minutes}` : minutes
+      this.labelTime.text = `${minutes}:${seconds}`
+    }
 
     // Passed all buildings?
     if (this.buildingsPassed === config.buildings.amountPerLevel && this.buildings.children.size === 0) {

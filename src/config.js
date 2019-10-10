@@ -2,12 +2,13 @@
 
 export default {
 
+  // Change the amount of hotels on screen, or how fast they appear
   buildings: {
-    amountPerLevel: 8,
+    amountPerLevel: 2,
     // In seconds
     secondsApart: 5,
     secondsApartIncrease: 0.5,
-    speed: 10,
+    speed: 13,
     speedIncrease: 4
   },
 
@@ -22,6 +23,7 @@ export default {
   hasHighScores: true,
   numberOfPlayersInHighScore: 5,
 
+  // Want a higher score? Change this
   scoreIncrease: 1,
 
   text: {
@@ -29,6 +31,7 @@ export default {
     strokeColour: '#ffee5f'
   },
 
+  // All of the below will make the vehicle's physics behave dfferent
   vehicle: {
     gravity: 50,
     gravityDecreaseAmount: 50,
@@ -38,7 +41,7 @@ export default {
     },
 
     // "balloon" or "plane"
-    type: 'balloon'
+    type: 'balloon' // <!-- change me if you want a different vehicle
   },
 
   weather: {

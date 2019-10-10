@@ -66,7 +66,7 @@ class Scene2 extends Scene {
       this.namesText = this.add.text(505, this.rankText.y, '', styles)
 
       // Put your name in here
-      this.nameInput = this.add.dom(675, 0, 'input', `color: ${config.text.colour}; font: 32px "HolidayExtrasSans"; background: transparent; outline: none; border: none;`)
+      this.nameInput = this.add.dom(680, 0, 'input', `color: ${config.text.colour}; font: 32px "HolidayExtrasSans"; background: transparent; outline: none; border: none;`)
       this.nameInput.node.focus()
       this.nameInput.setVisible(false)
 
@@ -142,7 +142,7 @@ class Scene2 extends Scene {
 
     if (rank && rank <= config.numberOfPlayersInHighScore) {
       this.nameInput.setVisible(true)
-      this.nameInput.y = 245 + (45 * (rank - 1))
+      this.nameInput.y = 250 + (45 * (rank - 1))
     }
   }
 

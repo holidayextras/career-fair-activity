@@ -1,3 +1,8 @@
+/**
+ * Open the config.js file to make changes to the game
+ * <-- you can find the file here
+ */
+
 import Phaser, { Game } from 'phaser'
 
 import './styles.css'

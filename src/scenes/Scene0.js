@@ -36,7 +36,7 @@ class Scene0 extends Scene {
     this.information = this.add.text(0, 570, `Hit Start and use the SPACEBAR or a click of the mouse to make your ${config.vehicle.type} fly.`, {
       align: 'center',
       fill: config.text.colour,
-      font: '16px "HolidayExtrasSans"',
+      font: '18px "HolidayExtrasSans"',
       stroke: config.text.strokeColour,
       strokeThickness: 4
     })
