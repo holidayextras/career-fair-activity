@@ -89,7 +89,7 @@ class Scene2 extends Scene {
 
   getSavedScores () {
     try {
-      fetch('https://api.jsonbin.io/b/5d947c639d20fe2188788727/latest')
+      fetch('https://api.jsonbin.io/v3/b/65686efb12a5d37659a11dc8/latest')
         .then(response => {
           if (!response.ok) {
             throw new Error('Can\'t load from jsonbin')
@@ -162,7 +162,7 @@ class Scene2 extends Scene {
     })
 
     try {
-      fetch('https://api.jsonbin.io/b/5d947c639d20fe2188788727', {
+      fetch('https://api.jsonbin.io/v3/b/65686efb12a5d37659a11dc8/', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
