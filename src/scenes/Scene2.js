@@ -98,7 +98,7 @@ class Scene2 extends Scene {
         })
         .then(response => {
           if (response) {
-            this.savedScores = response
+            this.savedScores = response.record
           }
         })
     } catch (error) {
